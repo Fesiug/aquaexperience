@@ -1,0 +1,12 @@
+"aquaexperience"
+{
+	"base"		"base"
+	"title" "Aqua Experience"
+	"maps" "^ae_"
+	"category"	"other"
+	"menusystem" "1"
+	
+	"settings"
+	{
+	}
+}
