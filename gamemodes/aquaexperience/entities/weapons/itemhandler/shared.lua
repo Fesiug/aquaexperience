@@ -51,14 +51,15 @@ function SWEP:EquipItem( ent )
 	if IsValid(ent) and ent.AEItem then
 		if ent:GetOwner() != NULL then
 			print( ent, "belongs to", ent:GetOwner(), "!! Not equipping." )
+			return
 		end
 		--if !p:GetInventory()[ent] then
 		--	print( ent, "is not in", p, "'s inventory!" )
 		--	return
-		--elseif p:GetInventory()[ent] then
-		--	print( ent, "is in", p, "'s inventory!" )
-		--	return
-		--end
+		if p:GetInventory()[ent] then
+			print( ent, "is in", p, "'s inventory!" )
+			return
+		end
 		--print("Pick up", ent)
 
 		ent:SetParent( p )

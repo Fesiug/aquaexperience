@@ -14,14 +14,6 @@ function ENT:Initialize()
 	end
 end
 
-function ENT:GetViewModel()
-	return self:GetChildren()[1]
-end
-
-function ENT:CanPickup()
-	return true
-end
-
 local function recurse( modify, includer )
 	local basevars = ITEMS[includer].BaseClass
 	if ITEMS[includer].BaseClass then
