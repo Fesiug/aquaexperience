@@ -20,23 +20,33 @@ function GM:HUDShouldDraw( name )
 	end
 end
 
+CONV_HUDSCALE = CreateClientConVar("ae_hud_scale", 2, true, false )
+
+
 function s( scale )
-	return scale * 3
+	return math.ceil( scale * CONV_HUDSCALE:GetFloat() )
 end
 
 local sizes = {
-	8
+	8, 10, 12, 16, 20
 }
 
-for index, scale in ipairs( sizes ) do
-	surface.CreateFont("AE_HUD_" .. scale, {
-		font = "Arial",
-		size = s(scale),
-		weight = 0,
-		extended = false,
-		italic = true,
-	})
+local function regenfonts()
+	for index, scale in ipairs( sizes ) do
+		surface.CreateFont("AE_HUD_" .. scale, {
+			font = "Arial Bold",
+			size = s(scale),
+			weight = 0,
+			extended = false,
+			italic = false,
+			antialias = true,
+		})
+	end
 end
+regenfonts()
+cvars.AddChangeCallback("ae_hud_scale", function(convar_name, value_old, value_new)
+	regenfonts()
+end)
 
 local function xy( x, y )
 	return {x, y}
@@ -61,7 +71,7 @@ local function S_Pop( x, y )
 	stack:Pop()
 end
 
-local superblack = Color( 0, 0, 0, 100 )
+superblack = Color( 0, 0, 0, 200 )
 
 local function hCol( r, g, b, a )
 	if Shad then
@@ -79,18 +89,20 @@ local function hCoo( col )
 	end
 end
 
-local function SRectOLD( w, h )
-	x, y = hXY()
-
-	surface.DrawRect( x, y, w, h )
-end
-
 local function hRect( x, y, w, h )
 	gx, gy = hXY()
 	x = (x or 0) + gx
 	y = (y or 0) + gy
 
 	surface.DrawRect( x, y, w, h )
+end
+
+local function hORect( x, y, w, h, r )
+	gx, gy = hXY()
+	x = (x or 0) + gx
+	y = (y or 0) + gy
+
+	surface.DrawOutlinedRect( x, y, w, h, r )
 end
 
 
@@ -100,14 +112,14 @@ function GM:HUDPaint()
 	local sw, sh = ScrW(), ScrH()
 
 	stack = util.Stack()
-	for i=1, 2 do
+	if false then--for i=1, 2 do
 		Shad = i==1
 		if Shad then
 			S_Push( s(1), s(1) )
 		end
 		S_Push( B2, sh - B2 ) -- Push Corner
 		
-			local H_W, H_H = s(72), s(8)
+			local H_W, H_H = s(128), s(12)
 			S_Push( 0, -H_H ) -- Push Health
 				--hCol( 200, 200, 200, 150 )
 				--hRect( H_W, H_H )
@@ -118,11 +130,11 @@ function GM:HUDPaint()
 				hCol( 255, 255, 255 )
 				hRect( 0, 0, H_W, H_H-s(2) )
 
-				local x, y = hXY( 0, -s(8) )
-				draw.SimpleText( "HEALTH", "AE_HUD_8", x, y, hCoo(color_white) )
+				local x, y = hXY( 0, -s(16) )
+				draw.SimpleText( "HEALTH", "AE_HUD_16", x, y, hCoo(color_white) )
 
-				local F_W, F_H = s(48), s(6)
-				S_Push( 0, -F_H - s(12) ) -- Push Food
+				local F_W, F_H = s(72), s(8)
+				S_Push( 0, -F_H - s(20) ) -- Push Food
 				
 					hCol( 255, 255, 255 )
 					hRect( 0, F_H-s(1), F_W, s(1) )
@@ -130,9 +142,21 @@ function GM:HUDPaint()
 					hCol( 255, 255, 255 )
 					hRect( 0, 0, F_W, F_H-s(2) )
 
-					local x, y = hXY( 0, -s(8) )
-					draw.SimpleText( "FOOD", "AE_HUD_8", x, y, hCoo(color_white) )
+					local x, y = hXY( 0, -s(12) )
+					draw.SimpleText( "FOOD", "AE_HUD_12", x, y, hCoo(color_white) )
+
+				S_Push( 0, -F_H - s(14) ) -- Push Water
+				
+					hCol( 255, 255, 255 )
+					hRect( 0, F_H-s(1), F_W, s(1) )
+
+					hCol( 255, 255, 255 )
+					hRect( 0, 0, F_W, F_H-s(2) )
+
+					local x, y = hXY( 0, -s(12) )
+					draw.SimpleText( "WATER", "AE_HUD_12", x, y, hCoo(color_white) )
 					
+				S_Pop() -- Pop Water
 				S_Pop() -- Pop Food
 
 			S_Pop() -- Pop Health
@@ -142,6 +166,85 @@ function GM:HUDPaint()
 			S_Pop()
 		end
 	end
+
+	for i=1, 2 do
+		Shad = i==1
+		if Shad then
+			S_Push( s(1), s(1) )
+		end
+		S_Push( sw - B2, sh - B2 ) -- Push Corner
+			local H_W, H_H = s(128), s(18)
+
+			--for rr=1, 2 do
+			--	local left = (rr == 1)
+			--	if left then
+			--		S_Push( -H_W - s(4), 0 )
+			--	end
+			if p:GetActiveWeapon():IsValid() and p:GetActiveWeapon():GetActiveR():IsValid() then
+				local wep = p:GetActiveWeapon()
+				local active = wep:GetActiveR()
+				S_Push( -H_W, -H_H ) -- Push Ammo
+					--hCol( 200, 200, 200, 150 )
+					--hRect( 0, 0, H_W, H_H )
+					
+					hCol( 255, 255, 255 )
+					hRect( 0, H_H-s(1), H_W, s(1) )
+
+					hCol( 255, 255, 255 )
+					hORect( 0, 0, H_W, H_H-s(2), s(1) )
+					
+					local x, y = hXY( 0, -s(16) )
+					draw.SimpleText( left and "LEFT" or "RIGHT", "AE_HUD_16", x, y, hCoo(color_white) )
+					
+					local x, y = hXY( s(4), s(3) )
+					draw.SimpleText( active:ItemClass().PrintName, "AE_HUD_12", x, y, hCoo(color_white) )
+					local x, y = hXY( H_W - s(4), s(3) )
+					draw.SimpleText( "SEMI", "AE_HUD_10", x, y, hCoo(color_white), TEXT_ALIGN_RIGHT )
+				S_Pop() -- Pop Ammo
+			end
+			--	if left then
+			--		S_Pop()
+			--	end
+			--end
+
+		S_Pop() -- Pop Corner
+		if Shad then
+			S_Pop()
+		end
+	end
+
+	S_Push( B2, sh - B2 ) -- Push Top Right Corner
+	local H_W, H_H = s(64), s(48)
+		S_Push( 0, -H_H )
+
+			for i=1, 2 do
+				Shad = i==1
+				if Shad then S_Push( s(1), s(1) ) end
+				local count = 1
+				for ent, _ in pairs( p:GetInventory() ) do
+					if ent == 0 then continue end
+					if !ent:IsValid() then continue end
+					local H_W, H_H = s(64), s(48)
+						hCol( 255, 255, 255 )
+						hORect( 0, 0, H_W, H_H, s(1) )
+
+						local x, y = hXY( H_W/2, H_H/2 )
+						draw.SimpleText( ent:ItemClass().PrintName, "AE_HUD_10", x, y, hCoo(color_white), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER )
+						local x, y = hXY( s(2), s(2) )
+						draw.SimpleText( count, "AE_HUD_10", x, y, hCoo(color_white) )
+						count = count + 1
+					S_Push( H_W + s(4), 0 ) -- Push Icon
+				end
+				for ent, _ in pairs( p:GetInventory() ) do
+					if ent == 0 then continue end
+					if !ent:IsValid() then continue end
+					S_Pop()
+				end
+				if Shad then S_Pop() end
+			end
+
+		S_Pop()
+	S_Pop()
 
 	if stack:Size() != 0 then print("Stack unfinished.") end
 	return
