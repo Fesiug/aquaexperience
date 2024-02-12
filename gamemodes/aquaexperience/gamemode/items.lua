@@ -43,8 +43,6 @@ AddItem( "base", {
 		},
 	},
 
-	ClipSize = 9999,
-
 	["Initialize"] = function( class, ent )
 		print( class, "Initialized base initialization" )
 	end,
@@ -61,10 +59,13 @@ AddItem( "base_firearm", {
 		},
 		["Float"] = {
 			"Delay",
+			"RefillTime",
+			"Accuracy_Reset",
+			"Accuracy_Amount",
 		},
 	},
 
-	ClipSize = 420,
+	ClipSize = 15,
 
 	["Initialize"] = function( class, ent )
 		ITEMS["base"].Initialize( class, ent )
@@ -74,15 +75,56 @@ AddItem( "base_firearm", {
 		print( class, "Initialized a firearm" )
 	end,
 
-	["Deploy"] = function( self, ent, ih )
+	["GetAccuracy"] = function( class, ent, ih )
+		return class.Accuracy + ent:GetAccuracy_Amount()
+	end,
+
+	["Deploy"] = function( class, ent, ih )
 		ih:VMAnim( ih:VM():SelectWeightedSequence( ACT_VM_DRAW ) )
 		ent:SetDelay( CurTime() + 0.75 )
 	end,
 
-	["Attack"] = function( self, ent, ih )
-		if ent:GetDelay() <= CurTime() then
-			ih:VMAnim( ih:VM():SelectWeightedSequence( ACT_VM_PRIMARYATTACK ) )
-			ent:SetDelay( CurTime() + self.Delay )
+	["Attack"] = function( class, ent, ih )
+		if ent:GetDelay() > CurTime() then
+			return
+		end
+		if ent:GetBurstCount() >= 1 then
+			return
+		end
+		if ent:GetClip() <= 0 then
+			ih:EmitSound( "weapons/clipempty_rifle.wav", 60, 100, 0.3, CHAN_STATIC )
+			ent:SetDelay( CurTime() + 0.2 )
+			return
+		end
+		ent:SetBurstCount( ent:GetBurstCount() + 1 )
+		ent:SetDelay( CurTime() + class.Delay )
+		ent:SetClip( ent:GetClip() - 1 )
+		ih:VMAnim( ih:VM():SelectWeightedSequence( ACT_VM_PRIMARYATTACK ) )
+		ih:EmitSound( class.FireSound, 70, 100, 0.4, CHAN_STATIC )
+
+		ent:SetAccuracy_Reset( CurTime() + class.Accuracy_Reset )
+		ent:SetAccuracy_Amount( ent:GetAccuracy_Amount() + class.Accuracy_Add )
+	end,
+
+	["Think"] = function( class, ent, ih )
+		if ent:GetRefillTime() > 0 and ent:GetRefillTime() <= CurTime() then
+			ent:SetClip( class.ClipSize )
+			ent:SetRefillTime( 0 )
+		end
+		if !ih:GetOwner():KeyDown( IN_ATTACK ) then
+			ent:SetBurstCount( 0 )
+		end
+		if ent:GetAccuracy_Reset() <= CurTime() then
+			ent:SetAccuracy_Amount( math.Approach( ent:GetAccuracy_Amount(), 0, FrameTime()*class.Accuracy_Decay ) )
+		end
+	end,
+
+	["Reload"] = function( class, ent, ih )
+		if ent:GetClip() < class.ClipSize and ent:GetDelay() <= CurTime() then
+			ih:VMAnim( ih:VM():SelectWeightedSequence( ACT_VM_RELOAD ) )
+
+			ent:SetRefillTime( CurTime() + 1.5 )
+			ent:SetDelay( CurTime() + ih:VM():SequenceDuration() )
 		end
 	end,
 })
@@ -94,9 +136,14 @@ AddItem( "glock", {
 	VModel = "models/weapons/cstrike/c_pist_glock18.mdl",
 	WModel = "models/weapons/w_pist_glock18.mdl",
 
-	ClipSize = 10,
+	ClipSize = 20,
 	Delay = (60/400),
+	FireSound = "weapons/glock/glock18-1.wav",
 
+	Accuracy = 1,
+	Accuracy_Add = 1,
+	Accuracy_Reset = 0.4,
+	Accuracy_Decay = 5,
 })
 
 AddItem( "usp", {
@@ -106,9 +153,14 @@ AddItem( "usp", {
 	VModel = "models/weapons/cstrike/c_pist_usp.mdl",
 	WModel = "models/weapons/w_pist_usp.mdl",
 
-	ClipSize = 10,
+	ClipSize = 12,
 	Delay = (60/300),
+	FireSound = "weapons/usp/usp_unsil-1.wav",
 
+	Accuracy = 0.7,
+	Accuracy_Add = 1,
+	Accuracy_Reset = 0.4,
+	Accuracy_Decay = 5,
 })
 
 AddItem( "p228", {
@@ -118,9 +170,31 @@ AddItem( "p228", {
 	VModel = "models/weapons/cstrike/c_pist_p228.mdl",
 	WModel = "models/weapons/w_pist_p228.mdl",
 
-	ClipSize = 10,
+	ClipSize = 13,
 	Delay = (60/300),
+	FireSound = "weapons/p228/p228-1.wav",
 
+	Accuracy = 0.8,
+	Accuracy_Add = 0.8,
+	Accuracy_Reset = 0.5,
+	Accuracy_Decay = 6,
+})
+
+AddItem( "fiveseven", {
+	PrintName = "FN5-7",
+	Base = "base_firearm",
+
+	VModel = "models/weapons/cstrike/c_pist_fiveseven.mdl",
+	WModel = "models/weapons/w_pist_fiveseven.mdl",
+
+	ClipSize = 20,
+	Delay = (60/350),
+	FireSound = "weapons/fiveseven/fiveseven-1.wav",
+
+	Accuracy = 1,
+	Accuracy_Add = 1.2,
+	Accuracy_Reset = 0.3,
+	Accuracy_Decay = 8,
 })
 
 AddItem( "deagle", {
@@ -132,7 +206,12 @@ AddItem( "deagle", {
 
 	ClipSize = 7,
 	Delay = (60/240),
+	FireSound = "weapons/deagle/deagle-1.wav",
 
+	Accuracy = 1.5,
+	Accuracy_Add = 2,
+	Accuracy_Reset = 0.7,
+	Accuracy_Decay = 4,
 })
 
 for ID, Data in pairs(ITEMS) do
@@ -140,6 +219,7 @@ for ID, Data in pairs(ITEMS) do
 	tent.Base = "ae_item"
 	tent.PrintName = Data.PrintName or ID
 	tent.ID = ID
+	tent.Class = ITEMS[ID]
 	tent.Spawnable = true
 	tent.AdminOnly = false
 	tent.Category = "Other"

@@ -27,14 +27,22 @@ function SWEP:SetupDataTables()
 	self:NetworkVar( "Entity", 1, "ActiveL" )
 end
 
-function SWEP:ItemR()
+function SWEP:ItemR( run )
 	local active = self:GetActiveR()
-	return active:IsValid() and active or false
+	if run and active:IsValid() then
+		active.Class[run]( active.Class, active, self )
+	else
+		return active:IsValid() and active or false
+	end
 end
 
-function SWEP:ItemL()
+function SWEP:ItemL( run )
 	local active = self:GetActiveL()
-	return active:IsValid() and active or false
+	if run and active:IsValid() then
+		active.Class[run]( active.Class, active, self )
+	else
+		return active:IsValid() and active or false
+	end
 end
 
 function SWEP:Initialize()
@@ -78,7 +86,7 @@ function SWEP:EquipItem( ent )
 		ent:SetAngles( angle_zero )
 		ent:SetAcquisition( CurTime() )
 
-		self:SetActive( ent )
+		--self:SetActive( ent )
 		if SERVER then
 			local inv = p:GetInventory()
 			inv[ent] = true
@@ -93,8 +101,8 @@ function SWEP:SetActive( ent )
 	local vm = p:GetViewModel( 0 )
 	if self:GetActiveR():IsValid() then self:Deactive() end
 	self:SetActiveR( ent )
-	vm:SetWeaponModel( ent:ItemClass().VModel, self )
-	self:ItemR():ItemClass():Deploy( self:ItemR(), self )
+	vm:SetWeaponModel( ent.Class.VModel, self )
+	self:ItemR( "Deploy" )
 	--vm:SendViewModelMatchingSequence( vm:SelectWeightedSequence( ACT_VM_DRAW ) )
 	--vm:SetPlaybackRate( 1 )
 	return true
@@ -112,10 +120,16 @@ end
 function SWEP:PrimaryAttack()
 	local p = self:GetOwner()
 	if self:ItemR() then
-		self:ItemR():ItemClass():Attack( self:ItemR(), self )
+		self:ItemR("Attack")
 	else
 		local trace = self:ItemCheckTrace()
 		self:EquipItem( trace.Entity )
+	end
+end
+
+function SWEP:Reload()
+	if self:ItemR() then
+		self:ItemR("Reload")
 	end
 end
 
@@ -169,7 +183,9 @@ function SWEP:Think()
 	local p = self:GetOwner()
 
 	if p:IsValid() then
-	
+		if self:ItemR() then
+			self:ItemR("Think")
+		end
 	else
 		print( self, "Thinking without an owner." )
 	end

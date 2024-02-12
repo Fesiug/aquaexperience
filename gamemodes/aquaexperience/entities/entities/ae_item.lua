@@ -6,14 +6,14 @@ ENT.Base = "base_anim"
 ENT.AEItem = true
 
 function ENT:Initialize()
-	self:SetModel( self:ItemClass().WModel or "models/weapons/w_357.mdl" )
+	self:SetModel( self.Class.WModel or "models/weapons/w_357.mdl" )
 	if SERVER then
 		self:PhysicsInit( SOLID_VPHYSICS )
 		self:SetCollisionGroup( COLLISION_GROUP_WEAPON )
 		self:GetPhysicsObject():Wake()
 	end
 
-	self:ItemClass():Initialize( self )
+	self.Class:Initialize( self )
 end
 
 local function recurse( modify, includer )
@@ -41,10 +41,6 @@ function ENT:SetupDataTables()
 			numba = numba + 1
 		end
 	end
-end
-
-function ENT:ItemClass()
-	return ITEMS[self.ID]
 end
 
 if SERVER then

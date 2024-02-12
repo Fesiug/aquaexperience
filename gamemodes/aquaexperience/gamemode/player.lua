@@ -54,26 +54,6 @@ function InventoryMeta:Sync()
 end
 
 InventoryMeta.__index = InventoryMeta
---function InventoryMeta.__index( self, key )
---	if INVMETAHELP[key] then return INVMETAHELP[key] end
---end
-
-if SERVER then
-	util.AddNetworkString("AEINV_InvSync")
-else
-	net.Receive("AEINV_InvSync", function()
-		print("Destroyed old inventory")
-		local p = LocalPlayer()
-		p.Inventory = nil
-		local inv = p:GetInventory()
-		local count = net.ReadUInt(8)
-		for i=1, count do
-			local key = net.ReadEntity()
-			print( "Added", key)
-			inv[key] = true
-		end
-	end)
-end
 
 function PT:GetInventory()
 	if !self.Inventory then
@@ -110,6 +90,23 @@ hook.Add( "OnRequestFullUpdate", "OnRequestFullUpdate_example", function( data )
 		Player(id):GetInventory():Sync()
 	end
 end )
+
+if SERVER then
+	util.AddNetworkString("AEINV_InvSync")
+else
+	net.Receive("AEINV_InvSync", function()
+		print("Destroyed old inventory")
+		local p = LocalPlayer()
+		p.Inventory = nil
+		local inv = p:GetInventory()
+		local count = net.ReadUInt(8)
+		for i=1, count do
+			local key = net.ReadEntity()
+			print( "Added", key)
+			inv[key] = true
+		end
+	end)
+end
 
 
 do

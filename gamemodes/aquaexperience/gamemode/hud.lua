@@ -110,6 +110,7 @@ function GM:HUDPaint()
 	local p = LocalPlayer()
 	local B1, B2 = s(4), s(8)
 	local sw, sh = ScrW(), ScrH()
+	local wep = p:HandlerCheck()
 
 	stack = util.Stack()
 	if false then--for i=1, 2 do
@@ -180,8 +181,7 @@ function GM:HUDPaint()
 			--	if left then
 			--		S_Push( -H_W - s(4), 0 )
 			--	end
-			if p:GetActiveWeapon():IsValid() and p:GetActiveWeapon():ItemR() then
-				local wep = p:GetActiveWeapon()
+			if wep and p:GetActiveWeapon():ItemR() then
 				local active = wep:ItemR()
 				S_Push( -H_W, -H_H ) -- Push Ammo
 					--hCol( 200, 200, 200, 150 )
@@ -193,13 +193,25 @@ function GM:HUDPaint()
 					hCol( 255, 255, 255 )
 					hORect( 0, 0, H_W, H_H-s(2), s(1) )
 					
-					local x, y = hXY( 0, -s(16) )
-					draw.SimpleText( left and "LEFT" or "RIGHT", "AE_HUD_16", x, y, hCoo(color_white) )
+					--local x, y = hXY( 0, -s(16) )
+					--draw.SimpleText( left and "LEFT" or "RIGHT", "AE_HUD_16", x, y, hCoo(color_white) )
 					
 					local x, y = hXY( s(4), s(3) )
-					draw.SimpleText( active:ItemClass().PrintName, "AE_HUD_12", x, y, hCoo(color_white) )
+					draw.SimpleText( active.Class.PrintName, "AE_HUD_12", x, y, hCoo(color_white) )
 					local x, y = hXY( H_W - s(4), s(3) )
 					draw.SimpleText( "SEMI", "AE_HUD_10", x, y, hCoo(color_white), TEXT_ALIGN_RIGHT )
+
+					S_Push( H_W, s(-2) )
+						for i=1, active.Class.ClipSize do
+							if i <= active:GetClip() then
+								hCol( 255, 255, 255 )
+							else
+								hCol( 0, 0, 0, 127 )
+								--hORect( s(-4 - ((i-1) * 3)), -s(8), s(2), s(8) )
+							end
+							hRect( s(-4 - ((i-1) * 3)), -s(8), s(2), s(8) )
+						end
+					S_Pop()
 				S_Pop() -- Pop Ammo
 			end
 			--	if left then
@@ -214,7 +226,7 @@ function GM:HUDPaint()
 	end
 
 	S_Push( B2, sh - B2 ) -- Push Top Right Corner
-	local H_W, H_H = s(64), s(48)
+	local H_W, H_H = s(48), s(24)
 		S_Push( 0, -H_H )
 
 			local inv = p:GetInventory():GetWeighted()
@@ -224,14 +236,19 @@ function GM:HUDPaint()
 				for _, ent in ipairs( inv ) do
 					if ent == 0 then continue end
 					if !ent:IsValid() then continue end
-					local H_W, H_H = s(64), s(48)
+					local active = wep:ItemR()
+					active = active == ent
 						hCol( 255, 255, 255 )
-						hORect( 0, 0, H_W, H_H, s(1) )
+						if active then
+							hRect( 0, 0, H_W, H_H, s(1) )
+						else
+							hORect( 0, 0, H_W, H_H, s(1) )
+						end
 
 						local x, y = hXY( H_W/2, H_H/2 )
-						draw.SimpleText( ent:ItemClass().PrintName, "AE_HUD_10", x, y, hCoo(color_white), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER )
-						local x, y = hXY( s(2), s(2) )
-						draw.SimpleText( _, "AE_HUD_10", x, y, hCoo(color_white) )
+						draw.SimpleText( ent.Class.PrintName, "AE_HUD_10", x, y, hCoo(active and color_black or color_white), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER )
+						local x, y = hXY( s(3), s(2) )
+						draw.SimpleText( _, "AE_HUD_10", x, y, hCoo(active and color_black or color_white) )
 					S_Push( H_W + s(4), 0 ) -- Push Icon
 				end
 				for _, ent in ipairs( inv ) do
