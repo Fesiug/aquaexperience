@@ -180,9 +180,9 @@ function GM:HUDPaint()
 			--	if left then
 			--		S_Push( -H_W - s(4), 0 )
 			--	end
-			if p:GetActiveWeapon():IsValid() and p:GetActiveWeapon():GetActiveR():IsValid() then
+			if p:GetActiveWeapon():IsValid() and p:GetActiveWeapon():ItemR() then
 				local wep = p:GetActiveWeapon()
-				local active = wep:GetActiveR()
+				local active = wep:ItemR()
 				S_Push( -H_W, -H_H ) -- Push Ammo
 					--hCol( 200, 200, 200, 150 )
 					--hRect( 0, 0, H_W, H_H )
@@ -217,11 +217,11 @@ function GM:HUDPaint()
 	local H_W, H_H = s(64), s(48)
 		S_Push( 0, -H_H )
 
+			local inv = p:GetInventory():GetWeighted()
 			for i=1, 2 do
 				Shad = i==1
 				if Shad then S_Push( s(1), s(1) ) end
-				local count = 1
-				for ent, _ in pairs( p:GetInventory() ) do
+				for _, ent in ipairs( inv ) do
 					if ent == 0 then continue end
 					if !ent:IsValid() then continue end
 					local H_W, H_H = s(64), s(48)
@@ -231,11 +231,10 @@ function GM:HUDPaint()
 						local x, y = hXY( H_W/2, H_H/2 )
 						draw.SimpleText( ent:ItemClass().PrintName, "AE_HUD_10", x, y, hCoo(color_white), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER )
 						local x, y = hXY( s(2), s(2) )
-						draw.SimpleText( count, "AE_HUD_10", x, y, hCoo(color_white) )
-						count = count + 1
+						draw.SimpleText( _, "AE_HUD_10", x, y, hCoo(color_white) )
 					S_Push( H_W + s(4), 0 ) -- Push Icon
 				end
-				for ent, _ in pairs( p:GetInventory() ) do
+				for _, ent in ipairs( inv ) do
 					if ent == 0 then continue end
 					if !ent:IsValid() then continue end
 					S_Pop()

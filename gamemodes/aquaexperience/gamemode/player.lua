@@ -25,6 +25,21 @@ function InventoryMeta:BugCheck()
 	end
 end
 
+function InventoryMeta:GetWeighted()
+	local itemlist = {}
+
+	for i, v in pairs(self) do
+		if i == 0 then continue end
+		table.insert( itemlist, i )
+	end
+
+	table.sort( itemlist, function( a, b ) 
+		return a:GetAcquisition() < b:GetAcquisition()
+	end)
+
+	return itemlist
+end
+
 function InventoryMeta:Sync()
 	if SERVER then
 		net.Start("AEINV_InvSync")
@@ -92,7 +107,7 @@ hook.Add( "OnRequestFullUpdate", "OnRequestFullUpdate_example", function( data )
 	local index = data.index   		// Same as Entity:EntIndex() minus one
 
 	if SERVER then
-		Player(id).Inventory:Sync()
+		Player(id):GetInventory():Sync()
 	end
 end )
 
@@ -133,23 +148,16 @@ local dads = {
 }
 
 local function beatup( ply, num )
-	local inv = ply:GetInventory()
+	local inv = ply:GetInventory():GetWeighted()
 	local wep = ply:HandlerCheck()
 
-	local numby = 1
-	for ent, _ in pairs(inv) do
-		if ent == 0 then continue end
-
-		print(ent)
-		if num == numby then
-			if ent == wep:GetActiveR() then
-				wep:Deactive()
-			else
-				wep:SetActive(ent)
-			end
-			break
+	local ent = inv[num]
+	if ent then
+		if ent == wep:GetActiveR() then
+			wep:Deactive()
+		else
+			wep:SetActive(ent)
 		end
-		numby = numby + 1
 	end
 end
 

@@ -43,8 +43,10 @@ AddItem( "base", {
 		},
 	},
 
-	["Initialize"] = function( self )
-		print(self, "Initialized base initialization")
+	ClipSize = 9999,
+
+	["Initialize"] = function( class, ent )
+		print( class, "Initialized base initialization" )
 	end,
 })
 
@@ -54,6 +56,7 @@ AddItem( "base_firearm", {
 
 	Vars = {
 		["Int"] = {
+			"Clip",
 			"BurstCount",
 		},
 		["Float"] = {
@@ -61,10 +64,26 @@ AddItem( "base_firearm", {
 		},
 	},
 
-	["Initialize"] = function( self )
-		self.BaseClass.Initialize( self )
+	ClipSize = 420,
 
-		print(self, "Initialized a firearm")
+	["Initialize"] = function( class, ent )
+		ITEMS["base"].Initialize( class, ent )
+
+		ent:SetClip( class.ClipSize )
+
+		print( class, "Initialized a firearm" )
+	end,
+
+	["Deploy"] = function( self, ent, ih )
+		ih:VMAnim( ih:VM():SelectWeightedSequence( ACT_VM_DRAW ) )
+		ent:SetDelay( CurTime() + 0.75 )
+	end,
+
+	["Attack"] = function( self, ent, ih )
+		if ent:GetDelay() <= CurTime() then
+			ih:VMAnim( ih:VM():SelectWeightedSequence( ACT_VM_PRIMARYATTACK ) )
+			ent:SetDelay( CurTime() + self.Delay )
+		end
 	end,
 })
 
@@ -74,6 +93,10 @@ AddItem( "glock", {
 
 	VModel = "models/weapons/cstrike/c_pist_glock18.mdl",
 	WModel = "models/weapons/w_pist_glock18.mdl",
+
+	ClipSize = 10,
+	Delay = (60/400),
+
 })
 
 AddItem( "usp", {
@@ -82,6 +105,34 @@ AddItem( "usp", {
 
 	VModel = "models/weapons/cstrike/c_pist_usp.mdl",
 	WModel = "models/weapons/w_pist_usp.mdl",
+
+	ClipSize = 10,
+	Delay = (60/300),
+
+})
+
+AddItem( "p228", {
+	PrintName = "P2-8",
+	Base = "base_firearm",
+
+	VModel = "models/weapons/cstrike/c_pist_p228.mdl",
+	WModel = "models/weapons/w_pist_p228.mdl",
+
+	ClipSize = 10,
+	Delay = (60/300),
+
+})
+
+AddItem( "deagle", {
+	PrintName = "D.E.",
+	Base = "base_firearm",
+
+	VModel = "models/weapons/cstrike/c_pist_deagle.mdl",
+	WModel = "models/weapons/w_pist_deagle.mdl",
+
+	ClipSize = 7,
+	Delay = (60/240),
+
 })
 
 for ID, Data in pairs(ITEMS) do
@@ -93,7 +144,7 @@ for ID, Data in pairs(ITEMS) do
 	tent.AdminOnly = false
 	tent.Category = "Other"
 
-	print("aei_" .. ID)
+	-- print("aei_" .. ID)
 	scripted_ents.Register( tent, "aei_" .. ID )
 end
 

@@ -4,7 +4,7 @@ AddCSLuaFile()
 SWEP.Base						= "weapon_base"
 SWEP.AEItemHandler				= true
 
-SWEP.ViewModel					= "models/weapons/c_hands.mdl"
+SWEP.ViewModel					= "models/weapons/c_arms.mdl"
 SWEP.ViewModelFOV				= 74
 SWEP.ViewModelFlip				= false
 SWEP.UseHands					= true
@@ -27,10 +27,20 @@ function SWEP:SetupDataTables()
 	self:NetworkVar( "Entity", 1, "ActiveL" )
 end
 
+function SWEP:ItemR()
+	local active = self:GetActiveR()
+	return active:IsValid() and active or false
+end
+
+function SWEP:ItemL()
+	local active = self:GetActiveL()
+	return active:IsValid() and active or false
+end
+
 function SWEP:Initialize()
 end
 
-local size = 4/2
+local size = 8/2
 local tracedef = {
 	mins = Vector( -size, -size, -size ),
 	maxs = Vector( size, size, size ),
@@ -84,8 +94,9 @@ function SWEP:SetActive( ent )
 	if self:GetActiveR():IsValid() then self:Deactive() end
 	self:SetActiveR( ent )
 	vm:SetWeaponModel( ent:ItemClass().VModel, self )
-	vm:SendViewModelMatchingSequence( vm:SelectWeightedSequence( ACT_VM_DRAW ) )
-	vm:SetPlaybackRate( 1 )
+	self:ItemR():ItemClass():Deploy( self:ItemR(), self )
+	--vm:SendViewModelMatchingSequence( vm:SelectWeightedSequence( ACT_VM_DRAW ) )
+	--vm:SetPlaybackRate( 1 )
 	return true
 end
 
@@ -100,10 +111,28 @@ end
 
 function SWEP:PrimaryAttack()
 	local p = self:GetOwner()
-	if p:KeyPressed(IN_ATTACK) then
+	if self:ItemR() then
+		self:ItemR():ItemClass():Attack( self:ItemR(), self )
+	else
 		local trace = self:ItemCheckTrace()
 		self:EquipItem( trace.Entity )
 	end
+end
+
+function SWEP:VM()
+	local p = self:GetOwner()
+	return p:GetViewModel( 0 )
+end
+
+function SWEP:VMAnim( seq, rate )
+	local p = self:GetOwner()
+	local vm = p:GetViewModel( 0 )
+	vm:SendViewModelMatchingSequence( seq )
+	vm:SetPlaybackRate( rate or 1 )
+end
+
+function SWEP:VMAnimE( seq, rate )
+	self:VMAnim( vm:LookupSequence( seq ), rate )
 end
 
 function SWEP:SecondaryAttack()
@@ -161,19 +190,6 @@ function SWEP:CalcViewModelView( vm, opos, oang, pos )
 
 	return opos, oang
 end
-
-hook.Add( "PostDrawViewModel", "AE_PostDrawViewModel", function()
-	local p = LocalPlayer()
-	local wep = p:HandlerCheck()
-
-	if wep:GetActiveR():IsValid() and wep:GetActiveR():GetViewModel() then
-		local vm = wep:GetActiveR():GetViewModel()
-
-		vm:SetPos( EyePos() )
-		vm:SetAngles( EyeAngles() )
-		vm:DrawModel()
-	end
-end)
 
 AddCSLuaFile("hud.lua")
 include("hud.lua")

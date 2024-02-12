@@ -12,6 +12,8 @@ function ENT:Initialize()
 		self:SetCollisionGroup( COLLISION_GROUP_WEAPON )
 		self:GetPhysicsObject():Wake()
 	end
+
+	self:ItemClass():Initialize( self )
 end
 
 local function recurse( modify, includer )
