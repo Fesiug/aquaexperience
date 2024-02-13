@@ -83,7 +83,7 @@ function SWEP:EquipItem( ent )
 		ent:SetParent( p )
 		ent:SetOwner( p )
 		ent:SetPos( vector_origin )
-		ent:SetAngles( angle_zero )
+		ent:SetAngles( Angle( 0, p:EyeAngles().y, 0 ) )
 		ent:SetAcquisition( CurTime() )
 
 		--self:SetActive( ent )
