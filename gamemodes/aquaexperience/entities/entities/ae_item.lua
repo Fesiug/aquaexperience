@@ -60,4 +60,16 @@ if SERVER then
 		end
 		return
 	end
+else
+	hook.Add("NotifyShouldTransmit", "AE_NotifyShouldTransmit", function( ent, shouldtransmit )
+		if ent.AEItem then
+			if shouldtransmit then
+				if ent:GetOwner() == LocalPlayer() then
+					ent:SetPredictable( true )
+				end
+			else
+				ent:SetPredictable( false )
+			end
+		end
+	end)
 end

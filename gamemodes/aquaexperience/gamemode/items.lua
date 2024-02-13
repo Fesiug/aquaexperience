@@ -66,6 +66,7 @@ AddItem( "base_firearm", {
 	},
 
 	ClipSize = 15,
+	BurstCount = math.huge,
 
 	["Initialize"] = function( class, ent )
 		ITEMS["base"].Initialize( class, ent )
@@ -88,7 +89,7 @@ AddItem( "base_firearm", {
 		if ent:GetDelay() > CurTime() then
 			return
 		end
-		if ent:GetBurstCount() >= 1 then
+		if ent:GetBurstCount() >= class.BurstCount then
 			return
 		end
 		if ent:GetClip() <= 0 then
@@ -104,6 +105,18 @@ AddItem( "base_firearm", {
 
 		ent:SetAccuracy_Reset( CurTime() + class.Accuracy_Reset )
 		ent:SetAccuracy_Amount( ent:GetAccuracy_Amount() + class.Accuracy_Add )
+
+		local acc = ih:ItemR("GetAccuracy")
+		acc = math.rad( acc )
+		ih:FireBullets( {
+			Attacker = ih:GetOwner(),
+			Damage = 1,
+			Force = 1,
+			Num = 1,
+			Dir = ih:GetOwner():GetAimVector(),
+			Src = ih:GetOwner():GetShootPos(),
+			Spread = Vector( acc, acc, 0 ),
+		} )
 	end,
 
 	["Think"] = function( class, ent, ih )
@@ -141,7 +154,8 @@ AddItem( "glock", {
 	FireSound = "weapons/glock/glock18-1.wav",
 
 	Accuracy = 1,
-	Accuracy_Add = 1,
+	BurstCount = 1,
+	Accuracy_Add = 0.3,
 	Accuracy_Reset = 0.4,
 	Accuracy_Decay = 5,
 })
@@ -158,7 +172,8 @@ AddItem( "usp", {
 	FireSound = "weapons/usp/usp_unsil-1.wav",
 
 	Accuracy = 0.7,
-	Accuracy_Add = 1,
+	BurstCount = 1,
+	Accuracy_Add = 0.5,
 	Accuracy_Reset = 0.4,
 	Accuracy_Decay = 5,
 })
@@ -175,7 +190,8 @@ AddItem( "p228", {
 	FireSound = "weapons/p228/p228-1.wav",
 
 	Accuracy = 0.8,
-	Accuracy_Add = 0.8,
+	BurstCount = 1,
+	Accuracy_Add = 0.4,
 	Accuracy_Reset = 0.5,
 	Accuracy_Decay = 6,
 })
@@ -188,11 +204,12 @@ AddItem( "fiveseven", {
 	WModel = "models/weapons/w_pist_fiveseven.mdl",
 
 	ClipSize = 20,
+	BurstCount = 1,
 	Delay = (60/350),
 	FireSound = "weapons/fiveseven/fiveseven-1.wav",
 
 	Accuracy = 1,
-	Accuracy_Add = 1.2,
+	Accuracy_Add = 0.9,
 	Accuracy_Reset = 0.3,
 	Accuracy_Decay = 8,
 })
@@ -205,13 +222,49 @@ AddItem( "deagle", {
 	WModel = "models/weapons/w_pist_deagle.mdl",
 
 	ClipSize = 7,
+	BurstCount = 1,
 	Delay = (60/240),
 	FireSound = "weapons/deagle/deagle-1.wav",
 
 	Accuracy = 1.5,
-	Accuracy_Add = 2,
+	Accuracy_Add = 1,
 	Accuracy_Reset = 0.7,
 	Accuracy_Decay = 4,
+})
+
+AddItem( "m4a1", {
+	PrintName = "M-16",
+	Base = "base_firearm",
+
+	VModel = "models/weapons/cstrike/c_rif_m4a1.mdl",
+	WModel = "models/weapons/w_rif_m4a1.mdl",
+
+	ClipSize = 20,
+	Delay = (60/450),
+	FireSound = "weapons/m4a1/m4a1_unsil-1.wav",
+
+	Accuracy = 1,
+	Accuracy_Add = 0.4,
+	Accuracy_Reset = 0.4,
+	Accuracy_Decay = 12,
+})
+
+AddItem( "famas", {
+	PrintName = "FA-3",
+	Base = "base_firearm",
+
+	VModel = "models/weapons/cstrike/c_rif_famas.mdl",
+	WModel = "models/weapons/w_rif_famas.mdl",
+
+	ClipSize = 20,
+	BurstCount = 3,
+	Delay = (60/850),
+	FireSound = "weapons/famas/famas-1.wav",
+
+	Accuracy = 1,
+	Accuracy_Add = 0.15,
+	Accuracy_Reset = 0.2,
+	Accuracy_Decay = 12,
 })
 
 for ID, Data in pairs(ITEMS) do

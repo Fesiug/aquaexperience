@@ -35,9 +35,9 @@ function SWEP:DrawHUD()
 
 		surface.SetDrawColor( 255, 255, 255 )
 		surface.SetMaterial( MAT_DOT )
-		local ra = s(1)
+		local ra = s(2)
 		local di = ra*2
-		local amt = self:ItemR().Class:GetAccuracy( self:ItemR(), self )
+		local amt = self:ItemR("GetAccuracy")
 		local gap = calc*amt
 		surface.DrawTexturedRect( w - ra, h - ra + gap, di, di )
 		surface.DrawTexturedRect( w - ra, h - ra - gap, di, di )

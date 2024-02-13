@@ -199,7 +199,15 @@ function GM:HUDPaint()
 					local x, y = hXY( s(4), s(3) )
 					draw.SimpleText( active.Class.PrintName, "AE_HUD_12", x, y, hCoo(color_white) )
 					local x, y = hXY( H_W - s(4), s(3) )
-					draw.SimpleText( "SEMI", "AE_HUD_10", x, y, hCoo(color_white), TEXT_ALIGN_RIGHT )
+
+					local fmname = "SEMI"
+					local fm = active.Class.BurstCount
+					if fm == math.huge then
+						fmname = "AUTO"
+					elseif fm > 1 then
+						fmname = fm.."RND"
+					end
+					draw.SimpleText( fmname, "AE_HUD_10", x, y, hCoo(color_white), TEXT_ALIGN_RIGHT )
 
 					S_Push( H_W, s(-2) )
 						for i=1, active.Class.ClipSize do

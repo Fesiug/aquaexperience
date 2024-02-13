@@ -30,7 +30,7 @@ end
 function SWEP:ItemR( run )
 	local active = self:GetActiveR()
 	if run and active:IsValid() then
-		active.Class[run]( active.Class, active, self )
+		return active.Class[run]( active.Class, active, self )
 	else
 		return active:IsValid() and active or false
 	end
@@ -91,6 +91,8 @@ function SWEP:EquipItem( ent )
 			local inv = p:GetInventory()
 			inv[ent] = true
 			inv:Sync()
+		else
+			ent:SetPredictable( true )
 		end
 	end
 end
@@ -175,6 +177,8 @@ function SWEP:DropItem()
 			local inv = p:GetInventory()
 			inv[ent] = nil
 			inv:Sync()
+		else
+			ent:SetPredictable( false )
 		end
 	end
 end
