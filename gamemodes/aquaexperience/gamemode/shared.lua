@@ -40,6 +40,9 @@ if CLIENT then
 INC("hud.lua")
 end
 
+ACS("chat.lua")
+INC("chat.lua")
+
 hook.Add( "CanPlayerSuicide", "AllowOwnerSuicide", function( ply )
 	return false
 end )
